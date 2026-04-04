@@ -18,11 +18,6 @@ __pycache__/
 .venv/
 venv/
 
-# ML artifacts (large files)
-backend/dataset.csv
-backend/app/ml/premium_model.pkl
-backend/app/ml/coverage_model.pkl
-
 # Logs
 *.log
 
