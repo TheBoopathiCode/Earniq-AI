@@ -149,7 +149,6 @@ export function Dashboard() {
         </div>
         <ZoneHeatmap zones={zoneData} workerZone={worker?.zone?.name ?? ''} />
         <ZoneRiskMap />
-        <ZoneRiskMap />
         <ClaimPipelineTracker
           currentStep={claimStep as any}
           dcsScore={displayZoneRisk.dcs_score}
