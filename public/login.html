@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EarniqAI – Income Insurance for Delivery Partners</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a1a12;
+    --card: #111e16;
+    --border: #1e3326;
+    --green: #22c55e;
+    --green-dim: #166534;
+    --green-glow: rgba(34,197,94,0.18);
+    --text: #e8f5ee;
+    --muted: #7aad8e;
+    --input-bg: #0f1f15;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+  /* Animated background */
+  .bg-mesh {
+    position: fixed; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 20% 20%, rgba(34,197,94,0.07) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 60% at 80% 80%, rgba(34,197,94,0.05) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 50% 50%, rgba(34,197,94,0.03) 0%, transparent 70%);
+  }
+  .bg-grid {
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(34,197,94,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(34,197,94,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  /* Floating particles */
+  .particle {
+    position: fixed; border-radius: 50%;
+    background: var(--green); opacity: 0.15;
+    animation: float linear infinite;
+    z-index: 0;
+  }
+  @keyframes float {
+    0% { transform: translateY(100vh) scale(0); opacity: 0; }
+    10% { opacity: 0.15; }
+    90% { opacity: 0.15; }
+    100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+  }
+  .container {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 440px;
+    padding: 24px;
+    animation: slideUp 0.6s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  /* Logo */
+  .logo-wrap {
+    text-align: center; margin-bottom: 32px;
+    animation: slideUp 0.6s 0.1s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  .logo-icon {
+    display: inline-flex; align-items: center; gap: 10px;
+    margin-bottom: 8px;
+  }
+  .logo-hex {
+    width: 36px; height: 36px;
+    background: var(--green);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    position: relative;
+    box-shadow: 0 0 20px var(--green-glow);
+  }
+  .logo-hex::after {
+    content: '';
+    position: absolute; inset: 4px;
+    background: var(--bg);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  }
+  .logo-text {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px; font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+  .logo-text span { color: var(--green); }
+  .logo-sub {
+    font-size: 13px; color: var(--muted);
+    letter-spacing: 0.02em;
+  }
+  /* Card */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    box-shadow: 0 0 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(34,197,94,0.05);
+    animation: slideUp 0.6s 0.2s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  .card h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 24px; font-weight: 700;
+    text-align: center; margin-bottom: 6px;
+  }
+  .card .subtitle {
+    text-align: center; color: var(--muted);
+    font-size: 14px; margin-bottom: 24px;
+  }
+  /* Google button */
+  .btn-google {
+    width: 100%; padding: 13px;
+    background: #fff; color: #111;
+    border: none; border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px; font-weight: 500;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    transition: all 0.2s;
+    margin-bottom: 20px;
+  }
+  .btn-google:hover { background: #f0f0f0; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(255,255,255,0.1); }
+  .btn-google svg { width: 20px; height: 20px; }
+  /* Divider */
+  .divider {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 20px; color: var(--muted); font-size: 13px;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1;
+    height: 1px; background: var(--border);
+  }
+  /* Tabs */
+  .tabs {
+    display: flex; background: var(--input-bg);
+    border: 1px solid var(--border); border-radius: 12px;
+    padding: 4px; gap: 4px; margin-bottom: 20px;
+  }
+  .tab {
+    flex: 1; padding: 10px;
+    border: none; border-radius: 9px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 500;
+    cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    background: transparent; color: var(--muted);
+  }
+  .tab.active {
+    background: var(--green); color: #000; font-weight: 600;
+    box-shadow: 0 0 12px var(--green-glow);
+  }
+  .tab:not(.active):hover { color: var(--text); background: var(--border); }
+  /* Input */
+  .field { margin-bottom: 16px; }
+  .field label {
+    display: block; font-size: 13px; font-weight: 500;
+    color: var(--muted); margin-bottom: 8px;
+    letter-spacing: 0.02em;
+  }
+  .input-wrap { position: relative; }
+  .input-wrap input {
+    width: 100%; padding: 13px 16px;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px; color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px; outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .input-wrap input::placeholder { color: #3a5446; }
+  .input-wrap input:focus {
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px var(--green-glow);
+  }
+  /* OTP button */
+  .btn-primary {
+    width: 100%; padding: 14px;
+    background: var(--green); color: #000;
+    border: none; border-radius: 12px;
+    font-family: 'Syne', sans-serif;
+    font-size: 16px; font-weight: 700;
+    cursor: pointer; letter-spacing: 0.02em;
+    transition: all 0.2s;
+    box-shadow: 0 0 24px var(--green-glow);
+    margin-bottom: 24px;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 36px rgba(34,197,94,0.35);
+  }
+  .btn-primary:active { transform: translateY(0); }
+  /* Features */
+  .features { display: flex; flex-direction: column; gap: 10px; }
+  .feature {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; color: var(--muted);
+  }
+  .feature-icon {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: var(--green-dim);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .feature-icon svg { width: 14px; height: 14px; color: var(--green); }
+</style>
+</head>
+<body>
+<div class="bg-mesh"></div>
+<div class="bg-grid"></div>
+
+<!-- Particles -->
+<script>
+  for (let i = 0; i < 12; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const s = Math.random() * 4 + 2;
+    p.style.cssText = `width:${s}px;height:${s}px;left:${Math.random()*100}%;animation-duration:${Math.random()*10+8}s;animation-delay:${Math.random()*10}s`;
+    document.body.appendChild(p);
+  }
+</script>
+
+<div class="container">
+  <div class="logo-wrap">
+    <div class="logo-icon">
+      <div class="logo-hex"></div>
+      <div class="logo-text">Earniq<span>AI</span></div>
+    </div>
+    <div class="logo-sub">Income Insurance for Delivery Partners</div>
+  </div>
+
+  <div class="card">
+    <h2>Welcome Back</h2>
+    <p class="subtitle">Sign in to protect your income</p>
+
+    <button class="btn-google">
+      <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Continue with Google
+    </button>
+
+    <div class="divider">Or continue with</div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab(this,'phone')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.64A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+        Phone
+      </button>
+      <button class="tab" onclick="switchTab(this,'email')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        Email
+      </button>
+    </div>
+
+    <div id="phone-field" class="field">
+      <label>Phone Number</label>
+      <div class="input-wrap">
+        <input type="tel" placeholder="+91 98765 43210">
+      </div>
+    </div>
+    <div id="email-field" class="field" style="display:none;">
+      <label>Email Address</label>
+      <div class="input-wrap">
+        <input type="email" placeholder="you@example.com">
+      </div>
+    </div>
+
+    <button class="btn-primary" id="cta-btn">Send OTP</button>
+
+    <div class="features">
+      <div class="feature">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        Parametric income protection
+      </div>
+      <div class="feature">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12l2 2 4-4"/></svg>
+        </div>
+        Built for delivery partners
+      </div>
+      <div class="feature">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+        </div>
+        AI-powered weekly pricing
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(el, type) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('phone-field').style.display = type === 'phone' ? 'block' : 'none';
+  document.getElementById('email-field').style.display = type === 'email' ? 'block' : 'none';
+  document.getElementById('cta-btn').textContent = type === 'phone' ? 'Send OTP' : 'Continue with Email';
+}
+</script>
+</body>
+</html>
