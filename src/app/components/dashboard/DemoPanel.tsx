@@ -145,7 +145,7 @@ export function DemoPanel({ onClaimCreated, onDcsChange }: { onClaimCreated?: ()
         {/* Trigger selector */}
         <div>
           <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Select Trigger</p>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {TRIGGERS.map(t => {
               const covered = policy?.triggersActive?.includes(t.key) ?? false
               return (

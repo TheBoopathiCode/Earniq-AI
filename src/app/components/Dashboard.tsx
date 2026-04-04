@@ -130,20 +130,20 @@ export function Dashboard() {
   }
 
   return (
-    <div className="flex flex-col xl:flex-row gap-6 p-4 lg:p-6 min-h-screen">
+    <div className="flex flex-col xl:flex-row gap-4 p-3 sm:p-4 lg:p-6 min-h-screen">
       {/* Left — main dashboard */}
-      <div className="flex-1 min-w-0 space-y-6">
+      <div className="flex-1 min-w-0 space-y-4">
         <WelcomeBanner />
         {payout && <PayoutBanner payout={payout} />}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <IncomeHealthMeterCard incomeHealth={displayIncome} />
           {aiInsight && <AIInsightCard insight={aiInsight} />}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <ZoneRiskCard zoneRisk={displayZoneRisk} />
           <SignalBreakdownPanel signals={displayZoneRisk.signals} />
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <IncomeChart data={incomeChartData} />
           {safeZone && <SafeZoneAdvisoryCard advisory={safeZone} />}
         </div>
@@ -158,7 +158,7 @@ export function Dashboard() {
         <ClaimHistoryList claims={claimHistory} />
       </div>
 
-      {/* Right — demo panel (sticky on desktop, normal flow on mobile) */}
+      {/* Right — demo panel */}
       <div className="w-full xl:w-80 xl:flex-shrink-0">
         <div className="xl:sticky xl:top-6">
           <DemoPanel onClaimCreated={fetchDashboard} onDcsChange={setDemoDcs} />
