@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, FileText, AlertCircle, History, User, LogOut, X, Menu } from 'lucide-react'
+import { LayoutDashboard, FileText, AlertCircle, History, User, LogOut, X, Menu, HelpCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { useAppContext } from '../context/AppContext'
@@ -16,6 +16,7 @@ export function Sidebar({ onLogout }: { onLogout: () => void }) {
     { path: '/claims',  label: t('claims'),    icon: AlertCircle,     badge: unreadClaims },
     { path: '/history', label: t('history'),   icon: History,         badge: 0 },
     { path: '/profile', label: t('profile'),   icon: User,            badge: 0 },
+    { path: '/help',    label: 'Help',         icon: HelpCircle,      badge: 0 },
   ]
 
   const SidebarContent = () => (

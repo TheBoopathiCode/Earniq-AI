@@ -1,4 +1,6 @@
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+/// <reference types="vite/client" />
+
+const BASE_URL = import.meta.env.VITE_API_URL || '/api'
 
 function getToken(): string | null {
   return localStorage.getItem('earniq_token')
@@ -14,8 +16,22 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       ...(options.headers || {}),
     },
   })
-  const data = await res.json()
-  if (!res.ok) throw new Error(data.detail || 'Request failed')
+
+  // Safe JSON parse — handles empty body (204), plain-text 500s, etc.
+  let data: any
+  const text = await res.text()
+  if (!text) {
+    if (!res.ok) throw new Error(`Server error (${res.status})`)
+    return undefined as T
+  }
+  try {
+    data = JSON.parse(text)
+  } catch {
+    console.error(`[api] Non-JSON response from ${path} (${res.status}):`, text)
+    throw new Error(`Server error (${res.status}). Please try again.`)
+  }
+
+  if (!res.ok) throw new Error(data.detail || data.message || 'Request failed')
   return data as T
 }
 
@@ -38,13 +54,23 @@ export function clearAuth(): void {
 }
 
 export function getSavedWorker<T>(): T | null {
-  const w = localStorage.getItem('earniq_worker')
-  return w ? (JSON.parse(w) as T) : null
+  try {
+    const w = localStorage.getItem('earniq_worker')
+    return w ? (JSON.parse(w) as T) : null
+  } catch {
+    localStorage.removeItem('earniq_worker')
+    return null
+  }
 }
 
 export function getSavedPolicy<T>(): T | null {
-  const p = localStorage.getItem('earniq_policy')
-  return p ? (JSON.parse(p) as T) : null
+  try {
+    const p = localStorage.getItem('earniq_policy')
+    return p ? (JSON.parse(p) as T) : null
+  } catch {
+    localStorage.removeItem('earniq_policy')
+    return null
+  }
 }
 
 export function getSavedToken(): string | null {

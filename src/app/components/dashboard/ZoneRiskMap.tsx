@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAppContext } from '../../context/AppContext'
+import { useZones } from '../../hooks/useZones'
 import { ZONES, CITY_NAMES } from '../../lib/types'
 import type { City, Zone } from '../../lib/types'
 
@@ -23,33 +24,16 @@ const CITY_CENTERS: Record<City, [number, number]> = {
 
 const CITIES: City[] = ['chennai', 'delhi', 'mumbai', 'hyderabad', 'kolkata']
 
-// Same formula as backend get_background_dcs and SystemStatusBar
-function calcDcs(zoneRisk: number): number {
-  const w = zoneRisk
-  return Math.round(
-    w * 1.00 * 0.25 +
-    w * 0.80 * 0.15 +
-    w * 0.70 * 0.10 +
-    w * 0.60 * 0.15 +
-    w * 0.50 * 0.05 +
-    w * 0.50 * 0.15 +
-    w * 0.40 * 0.10 +
-    w * 0.30 * 0.05
-  )
-}
-
 function getRiskColor(dcs: number): string {
   if (dcs >= 70) return '#ef4444'
   if (dcs >= 40) return '#f59e0b'
   return '#06C167'
 }
-
 function getRiskLabel(dcs: number): string {
   if (dcs >= 70) return 'High Risk'
   if (dcs >= 40) return 'Moderate'
   return 'Safe'
 }
-
 function getRiskBg(dcs: number): string {
   if (dcs >= 70) return 'bg-red-100 text-red-700 border-red-200'
   if (dcs >= 40) return 'bg-amber-100 text-amber-700 border-amber-200'
@@ -57,19 +41,25 @@ function getRiskBg(dcs: number): string {
 }
 
 export function ZoneRiskMap() {
-  const { worker } = useAppContext()
-  const mapRef = useRef<any>(null)
-  const mapInstanceRef = useRef<any>(null)
-  const circlesRef = useRef<any[]>([])
+  const { worker }                      = useAppContext()
+  const { zones: liveZones, lastFetch } = useZones()
+  const mapRef                          = useRef<any>(null)
+  const mapInstanceRef                  = useRef<any>(null)
+  const circlesRef                      = useRef<any[]>([])
   const [selectedCity, setSelectedCity] = useState<City>(worker?.city || 'chennai')
-  const [hoveredZone, setHoveredZone] = useState<Zone | null>(null)
-  const [mapReady, setMapReady] = useState(false)
+  const [hoveredZone, setHoveredZone]   = useState<Zone | null>(null)
+  const [mapReady, setMapReady]         = useState(false)
 
-  // When worker logs in, switch to their city
+  function getLiveDcs(zone: Zone): number {
+    return liveZones[selectedCity]?.find(z => z.id === zone.id)?.currentDcs ?? 0
+  }
+
+  // Switch city when worker logs in
   useEffect(() => {
     if (worker?.city) setSelectedCity(worker.city)
   }, [worker?.city])
 
+  // ── Init map (tile layer only) — runs on city change ──────────────────────
   useEffect(() => {
     injectLeafletCss()
     if (!mapRef.current) return
@@ -78,6 +68,7 @@ export function ZoneRiskMap() {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove()
         mapInstanceRef.current = null
+        circlesRef.current = []
       }
 
       delete (L.Icon.Default.prototype as any)._getIconUrl
@@ -100,33 +91,58 @@ export function ZoneRiskMap() {
       }).addTo(map)
 
       mapInstanceRef.current = map
-      circlesRef.current = []
+
+      // Pan to worker zone
+      if (worker?.zone) {
+        const wz = ZONES[selectedCity].find(z => z.id === worker.zone.id)
+        if (wz) setTimeout(() => map.setView([wz.lat, wz.lon], 13), 300)
+      }
+
+      setTimeout(() => map.invalidateSize(), 100)
       setMapReady(true)
+    })
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove()
+        mapInstanceRef.current = null
+        circlesRef.current = []
+      }
+      setMapReady(false)
+    }
+  }, [selectedCity]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Redraw circles whenever live DCS data updates ─────────────────────────
+  useEffect(() => {
+    if (!mapInstanceRef.current || !mapReady) return
+
+    import('leaflet').then(L => {
+      // Remove old circles
+      circlesRef.current.forEach(c => c.remove())
+      circlesRef.current = []
 
       ZONES[selectedCity].forEach(zone => {
-        const dcs = calcDcs(zone.riskScore)
-        const color = getRiskColor(dcs)
-        const radius = dcs >= 70 ? 900 : dcs >= 40 ? 700 : 500
+        const dcs      = getLiveDcs(zone)
+        const color    = getRiskColor(dcs)
+        const radius   = dcs >= 70 ? 900 : dcs >= 40 ? 700 : 500
         const isWorker = worker?.zone?.id === zone.id
 
         const circle = L.circle([zone.lat, zone.lon], {
           color, fillColor: color, fillOpacity: 0.35, weight: 2.5, radius,
-        }).addTo(map)
+        }).addTo(mapInstanceRef.current)
 
-        // Pulse ring for high risk
         if (dcs >= 70) {
           L.circle([zone.lat, zone.lon], {
             color, fillColor: 'transparent', fillOpacity: 0,
             weight: 1.5, radius: radius * 1.5, dashArray: '6 4', opacity: 0.5,
-          }).addTo(map)
+          }).addTo(mapInstanceRef.current)
         }
 
-        // Worker zone ring
         if (isWorker) {
           L.circle([zone.lat, zone.lon], {
             color: '#2563eb', fillColor: 'transparent', fillOpacity: 0,
             weight: 3, radius: radius * 1.8, dashArray: '8 4',
-          }).addTo(map)
+          }).addTo(mapInstanceRef.current)
         }
 
         circle.bindPopup(`
@@ -137,8 +153,7 @@ export function ZoneRiskMap() {
               <div style="width:10px;height:10px;border-radius:50%;background:${color}"></div>
               <span style="font-size:12px;font-weight:600;color:${color}">${getRiskLabel(dcs)}</span>
             </div>
-            <div style="font-size:12px">Zone Risk: <strong>${zone.riskScore}</strong></div>
-            <div style="font-size:12px">DCS Score: <strong>${dcs}</strong></div>
+            <div style="font-size:12px">DCS Score: <strong>${dcs}</strong> <span style="font-size:10px;color:#9ca3af">(live)</span></div>
             ${isWorker ? '<div style="font-size:11px;color:#2563eb;font-weight:700;margin-top:4px">📍 Your Zone</div>' : ''}
           </div>
         `, { maxWidth: 200 })
@@ -148,21 +163,8 @@ export function ZoneRiskMap() {
 
         circlesRef.current.push(circle)
       })
-
-      // Pan to worker zone
-      if (worker?.zone) {
-        const wz = ZONES[selectedCity].find(z => z.id === worker.zone.id)
-        if (wz) setTimeout(() => map.setView([wz.lat, wz.lon], 13), 300)
-      }
-
-      // Force map to recalculate size after render
-      setTimeout(() => map.invalidateSize(), 100)
     })
-
-    return () => {
-      if (mapInstanceRef.current) { mapInstanceRef.current.remove(); mapInstanceRef.current = null }
-    }
-  }, [selectedCity, worker])
+  }, [liveZones, selectedCity, mapReady]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const currentZones = ZONES[selectedCity]
 
@@ -173,7 +175,10 @@ export function ZoneRiskMap() {
           <h3 className="font-semibold text-gray-900 flex items-center gap-2">
             <span className="text-lg">🗺️</span> Zone Risk Map
           </h3>
-          <p className="text-xs text-gray-500 mt-0.5">DCS-based disruption confidence by zone</p>
+          <p className="text-xs text-gray-500 mt-0.5">
+            Live DCS from API · refreshes every 30s
+            {lastFetch && <span className="ml-2 text-[#06C167]">· updated {lastFetch}</span>}
+          </p>
         </div>
         <div className="flex gap-1 bg-gray-100 rounded-lg p-1 flex-wrap">
           {CITIES.map(city => (
@@ -232,7 +237,7 @@ export function ZoneRiskMap() {
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
           {currentZones.map(zone => {
-            const dcs = calcDcs(zone.riskScore)
+            const dcs = getLiveDcs(zone)
             const isWorkerZone = worker?.zone?.id === zone.id
             return (
               <div key={zone.id}
@@ -249,7 +254,7 @@ export function ZoneRiskMap() {
                   <span className="text-lg font-bold">{dcs}</span>
                 </div>
                 <p className="text-xs opacity-75 mt-0.5">{getRiskLabel(dcs)}</p>
-                <p className="text-xs opacity-50 mt-0.5">Risk: {zone.riskScore}</p>
+                <p className="text-xs opacity-50 mt-0.5">DCS · Live</p>
               </div>
             )
           })}

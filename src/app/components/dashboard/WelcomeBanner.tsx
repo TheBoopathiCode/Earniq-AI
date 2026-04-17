@@ -1,11 +1,11 @@
+import { memo, useState } from 'react'
 import { X, Sparkles } from 'lucide-react'
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAppContext } from '../../context/AppContext'
 import { PLATFORM_NAMES } from '../../lib/types'
 import { SpeakButton } from '../LanguageSwitcher'
 
-export function WelcomeBanner() {
+export const WelcomeBanner = memo(function WelcomeBanner() {
   const [visible, setVisible] = useState(true)
   const { worker } = useAppContext()
   const { t } = useTranslation()
@@ -46,4 +46,4 @@ export function WelcomeBanner() {
       </div>
     </div>
   )
-}
+})

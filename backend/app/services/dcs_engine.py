@@ -1,28 +1,32 @@
 def calculate_dcs(signals: dict) -> float:
+    """README-spec DCS weights: weather×0.35 + aqi×0.20 + traffic×0.15 + govt×0.20 + idle×0.10"""
     return round(
-        signals.get("weather", 0)    * 0.25 +
-        signals.get("aqi", 0)        * 0.15 +
-        signals.get("traffic", 0)    * 0.10 +
-        signals.get("govtAlert", 0)  * 0.15 +
-        signals.get("workerIdle", 0) * 0.05 +
-        signals.get("bioAlert", 0)   * 0.15 +
-        signals.get("conflict", 0)   * 0.10 +
-        signals.get("infraOutage", 0)* 0.05,
+        signals.get("weather",    0) * 0.35 +
+        signals.get("aqi",        0) * 0.20 +
+        signals.get("traffic",    0) * 0.15 +
+        signals.get("govtAlert",  0) * 0.20 +
+        signals.get("workerIdle", 0) * 0.10,
         1
     )
 
 
 def get_zone_signals(zone_risk: int) -> dict:
-    """Derive all signals deterministically from zone risk score."""
+    """
+    Fallback-only: used when live API data is unavailable.
+    Returns conservative estimates — NOT proportional multiplications.
+    High zone_risk means higher baseline probability, not certainty.
+    """
+    # Non-linear mapping: risk 0→0, risk 50→25, risk 80→55, risk 100→75
+    base = round((zone_risk ** 1.4) / 100, 1)
     return {
-        "weather":    round(zone_risk * 1.00, 1),
-        "aqi":        round(zone_risk * 0.80, 1),
-        "traffic":    round(zone_risk * 0.70, 1),
-        "govtAlert":  round(zone_risk * 0.60, 1),
-        "bioAlert":   round(zone_risk * 0.50, 1),
-        "conflict":   round(zone_risk * 0.40, 1),
-        "infraOutage":round(zone_risk * 0.30, 1),
-        "workerIdle": round(zone_risk * 0.50, 1),
+        "weather":    round(min(100, base * 0.90), 1),
+        "aqi":        round(min(100, base * 0.65), 1),
+        "traffic":    round(min(100, base * 0.55), 1),
+        "govtAlert":  round(min(100, base * 0.30), 1),
+        "bioAlert":   0.0,
+        "conflict":   0.0,
+        "infraOutage":round(min(100, base * 0.20), 1),
+        "workerIdle": round(min(100, base * 0.45), 1),
     }
 
 
@@ -43,35 +47,3 @@ def get_background_dcs(zone_risk_score: int) -> dict:
     }
 
 
-TRIGGER_SIMULATIONS = {
-    "rain": {
-        "signals": {"weather": 95, "aqi": 20, "traffic": 60, "govtAlert": 0, "workerIdle": 85, "bioAlert": 0, "conflict": 0, "infraOutage": 0},
-        "dcs": 74.0, "income_loss_pct": 67.0,
-        "description": "Heavy rainfall >15mm/hr detected. Roads flooded, orders dropped 80%.",
-    },
-    "heat": {
-        "signals": {"weather": 90, "aqi": 45, "traffic": 30, "govtAlert": 20, "workerIdle": 70, "bioAlert": 0, "conflict": 0, "infraOutage": 0},
-        "dcs": 71.0, "income_loss_pct": 45.0,
-        "description": "Extreme heat 46C feels-like. Outdoor delivery suspended by platform advisory.",
-    },
-    "aqi": {
-        "signals": {"weather": 10, "aqi": 95, "traffic": 40, "govtAlert": 60, "workerIdle": 75, "bioAlert": 0, "conflict": 0, "infraOutage": 0},
-        "dcs": 72.0, "income_loss_pct": 55.0,
-        "description": "AQI 380 Hazardous. Government advisory restricts outdoor movement. Orders down 60%.",
-    },
-    "lockdown": {
-        "signals": {"weather": 15, "aqi": 25, "traffic": 10, "govtAlert": 100, "workerIdle": 100, "bioAlert": 0, "conflict": 0, "infraOutage": 0},
-        "dcs": 85.0, "income_loss_pct": 100.0,
-        "description": "Section 144 imposed. All movement banned. Platform operations suspended.",
-    },
-    "outage": {
-        "signals": {"weather": 20, "aqi": 30, "traffic": 25, "govtAlert": 0, "workerIdle": 90, "bioAlert": 0, "conflict": 0, "infraOutage": 100},
-        "dcs": 73.0, "income_loss_pct": 100.0,
-        "description": "Platform app outage during peak hours 19:00-21:00. No orders assigned for 2 hours.",
-    },
-    "pandemic": {
-        "signals": {"weather": 10, "aqi": 20, "traffic": 5, "govtAlert": 100, "workerIdle": 100, "bioAlert": 100, "conflict": 0, "infraOutage": 0},
-        "dcs": 100.0, "income_loss_pct": 100.0,
-        "description": "State lockdown order. All outdoor work banned. DCS auto-set to 100.",
-    },
-}

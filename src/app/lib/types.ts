@@ -1,4 +1,5 @@
-export type Platform = 'zomato' | 'swiggy' | 'zepto' | 'amazon'
+export type Platform = 'zomato' | 'swiggy' | 'zepto' | 'blinkit' | 'amazon' | 'flipkart'
+export type PlatformCategory = 'food' | 'grocery' | 'ecommerce'
 export type City = 'chennai' | 'delhi' | 'mumbai' | 'hyderabad' | 'kolkata'
 
 export type Zone = {
@@ -6,20 +7,30 @@ export type Zone = {
 }
 
 export type PolicyTier = 'basic' | 'standard' | 'premium'
-export type TriggerType = 'rain' | 'heat' | 'aqi' | 'lockdown' | 'outage' | 'pandemic'
+export type TriggerType = 'rain' | 'heat' | 'aqi' | 'curfew' | 'platform' | 'pandemic'
 export type IncomeHealthStatus = 'green' | 'yellow' | 'red'
 export type ClaimStatus = 'pending' | 'approved' | 'paid' | 'rejected'
 export type RegistrationStep = 1 | 2 | 3 | 4
 
 export type Worker = {
-  id: string; phone: string; name: string; platform: Platform; city: City
+  id: string
+  platform_worker_id: string          // e.g. "ZOM-CH-00421" — stable platform identity
+  phone: string; name: string; platform: Platform; city: City
   zone: Zone; avgOrders: number; workingHours: number; upiId: string
   riskScore: number; createdAt: Date
+  // Platform-sourced fields
+  avg_order_value_inr: number
+  working_days_per_week: number
+  total_deliveries: number
+  rating: number
+  vehicle_type: 'bicycle' | 'bike' | 'scooter' | 'car'
+  badge: 'bronze' | 'silver' | 'gold' | 'platinum'
+  active_since: string
 }
 
 export type Policy = {
   id: string; workerId: string; tier: PolicyTier; weeklyPremium: number
-  coverageCap: number; validFrom: Date; validUntil: Date
+  coverageCap: number; validFrom: string; validUntil: string
   triggersActive: TriggerType[]; isActive: boolean; aiInsight?: string
 }
 
@@ -75,7 +86,15 @@ export const ZONES: Record<City, Zone[]> = {
 }
 
 export const PLATFORM_NAMES: Record<Platform, string> = {
-  zomato: 'Zomato', swiggy: 'Swiggy', zepto: 'Zepto', amazon: 'Amazon Flex',
+  zomato: 'Zomato', swiggy: 'Swiggy',
+  zepto: 'Zepto', blinkit: 'Blinkit',
+  amazon: 'Amazon Flex', flipkart: 'Flipkart Quick',
+}
+
+export const PLATFORM_CATEGORIES: Record<PlatformCategory, { label: string; platforms: Platform[] }> = {
+  food:      { label: 'Food Delivery',       platforms: ['zomato', 'swiggy'] },
+  grocery:   { label: 'Grocery / Q-Commerce', platforms: ['zepto', 'blinkit'] },
+  ecommerce: { label: 'E-Commerce',           platforms: ['amazon', 'flipkart'] },
 }
 
 export const CITY_NAMES: Record<City, string> = {
@@ -84,18 +103,20 @@ export const CITY_NAMES: Record<City, string> = {
 }
 
 export const TIER_DETAILS: Record<PolicyTier, {
-  name: string; premium: [number, number]; cap: number; triggers: TriggerType[]
+  name: string; premium: [number, number]
+  cap: number          // max income loss payout per week (NOT vehicle/health/accident)
+  triggers: TriggerType[]
 }> = {
-  basic:    { name: 'Basic',    premium: [8, 12],  cap: 400,  triggers: ['rain', 'heat'] },
-  standard: { name: 'Standard', premium: [13, 20], cap: 600,  triggers: ['rain', 'heat', 'aqi', 'lockdown'] },
-  premium:  { name: 'Premium',  premium: [21, 28], cap: 800,  triggers: ['rain', 'heat', 'aqi', 'lockdown', 'outage', 'pandemic'] },
+  basic:    { name: 'Basic',    premium: [8, 12],  cap: 1200, triggers: ['rain', 'heat'] },
+  standard: { name: 'Standard', premium: [13, 20], cap: 1600, triggers: ['rain', 'heat', 'aqi', 'curfew'] },
+  premium:  { name: 'Premium',  premium: [21, 28], cap: 2000, triggers: ['rain', 'heat', 'aqi', 'curfew', 'platform', 'pandemic'] },
 }
 
 export const TRIGGER_DETAILS: Record<TriggerType, { name: string; description: string; threshold: string }> = {
-  rain:     { name: 'Heavy Rainfall',    description: 'Orders drop 80-90% when rainfall exceeds 15mm/hr', threshold: '>15mm/hr for 30 min' },
-  heat:     { name: 'Extreme Heat',      description: 'Outdoor work halted, 35% income drop',             threshold: '>44°C feels-like for 45 min' },
-  aqi:      { name: 'Severe AQI',        description: 'Orders fall >60% during hazardous air quality',    threshold: 'AQI >300 for 3 hours' },
-  lockdown: { name: 'Zone Lockdown',     description: 'Movement banned, orders = 0',                      threshold: 'Official curfew / Sec 144' },
-  outage:   { name: 'Platform Outage',   description: 'App unreachable, no orders assigned',              threshold: 'Outage >45 min peak hours' },
-  pandemic: { name: 'Pandemic Lockdown', description: 'All outdoor work banned',                          threshold: 'State lockdown order' },
+  rain:     { name: 'Heavy Rainfall',    description: 'Lost delivery income when rainfall exceeds 15mm/hr — orders drop 80–90%', threshold: '>15mm/hr for 30 min' },
+  heat:     { name: 'Extreme Heat',      description: 'Lost delivery income when outdoor work is halted by extreme heat',        threshold: '>44°C feels-like for 45 min' },
+  aqi:      { name: 'Severe AQI',        description: 'Lost delivery income when hazardous air quality reduces orders >60%',     threshold: 'AQI >300 for 3 hours' },
+  curfew:   { name: 'Zone Lockdown',     description: 'Lost delivery income when movement is banned and orders = 0',             threshold: 'Official curfew / Sec 144' },
+  platform: { name: 'Platform Outage',   description: 'Lost delivery income when the app is unreachable and no orders assigned', threshold: 'Outage >45 min peak hours' },
+  pandemic: { name: 'Pandemic Lockdown', description: 'Lost delivery income when all outdoor work is banned by state order',     threshold: 'State lockdown order' },
 }

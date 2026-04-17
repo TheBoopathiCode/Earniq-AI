@@ -1,24 +1,17 @@
+import { memo, useCallback } from 'react'
 import { MapPin, Navigation, TrendingUp } from 'lucide-react'
 import { useAppContext } from '../../context/AppContext'
-import { ZONES } from '../../lib/types'
 import type { SafeZoneAdvisory } from '../../types/dashboard'
 
-export function SafeZoneAdvisoryCard({ advisory }: { advisory: SafeZoneAdvisory }) {
+export const SafeZoneAdvisoryCard = memo(function SafeZoneAdvisoryCard({ advisory }: { advisory: SafeZoneAdvisory }) {
   const { worker } = useAppContext()
 
-  const handleGetDirections = () => {
-    // Find destination zone coordinates
-    let destLat: number | null = null
-    let destLon: number | null = null
-
-    if (worker?.city) {
-      const cityZones = ZONES[worker.city]
-      const match = cityZones.find(z => z.name === advisory.suggested_zone)
-      if (match) { destLat = match.lat; destLon = match.lon }
-    }
+  const handleGetDirections = useCallback(() => {
+    // Coordinates come from the advisory itself (backend-provided) or fall back to name search
+    const destLat: number | null = (advisory as any).lat ?? null
+    const destLon: number | null = (advisory as any).lon ?? null
 
     if (destLat && destLon) {
-      // If browser supports geolocation, use current location as origin
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           pos => {
@@ -28,7 +21,6 @@ export function SafeZoneAdvisoryCard({ advisory }: { advisory: SafeZoneAdvisory 
               '_blank'
             )
           },
-          // Fallback: just show destination on map
           () => {
             window.open(
               `https://www.google.com/maps/search/?api=1&query=${destLat},${destLon}`,
@@ -43,13 +35,12 @@ export function SafeZoneAdvisoryCard({ advisory }: { advisory: SafeZoneAdvisory 
         )
       }
     } else {
-      // Fallback: search by zone name
       window.open(
         `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(advisory.suggested_zone)}`,
         '_blank'
       )
     }
-  }
+  }, [worker?.city, advisory.suggested_zone])
 
   return (
     <div className="bg-gradient-to-br from-[#06C167] to-[#049150] text-white rounded-xl p-6">
@@ -76,7 +67,7 @@ export function SafeZoneAdvisoryCard({ advisory }: { advisory: SafeZoneAdvisory 
           <div>
             <p className="text-sm opacity-90 mb-1">Expected Earnings</p>
             <div className="flex items-center gap-1">
-              <p className="text-xl font-bold">₹{advisory.expected_income.toLocaleString('en-IN')}</p>
+              <p className="text-xl font-bold">₹{(advisory.expected_income ?? 0).toLocaleString('en-IN')}</p>
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
@@ -97,4 +88,4 @@ export function SafeZoneAdvisoryCard({ advisory }: { advisory: SafeZoneAdvisory 
       </div>
     </div>
   )
-}
+})

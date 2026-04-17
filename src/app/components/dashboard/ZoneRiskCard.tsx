@@ -1,15 +1,21 @@
+import { memo, useMemo } from 'react'
 import { AlertTriangle, Shield } from 'lucide-react'
 import { useAppContext } from '../../context/AppContext'
 import type { ZoneRisk } from '../../types/dashboard'
 
-export function ZoneRiskCard({ zoneRisk }: { zoneRisk: ZoneRisk }) {
+export const ZoneRiskCard = memo(function ZoneRiskCard({ zoneRisk }: { zoneRisk: ZoneRisk }) {
   const { worker } = useAppContext()
   const { dcs_score } = zoneRisk
-  const risk = dcs_score >= 70 ? { label: 'HIGH',     color: 'text-red-600 bg-red-50 border-red-200' }
-             : dcs_score >= 40 ? { label: 'MODERATE', color: 'text-yellow-600 bg-yellow-50 border-yellow-200' }
-             :                   { label: 'LOW',       color: 'text-[#06C167] bg-[#E6FAF1] border-[#06C167]/30' }
-  const strokeColor = dcs_score >= 70 ? 'stroke-red-500' : dcs_score >= 40 ? 'stroke-yellow-500' : 'stroke-[#06C167]'
-  const radius = 60; const circumference = 2 * Math.PI * radius; const progress = (dcs_score / 100) * circumference
+  const risk = useMemo(() =>
+    dcs_score >= 70 ? { label: 'HIGH',     color: 'text-red-600 bg-red-50 border-red-200' }
+    : dcs_score >= 40 ? { label: 'MODERATE', color: 'text-yellow-600 bg-yellow-50 border-yellow-200' }
+    :                   { label: 'LOW',       color: 'text-[#06C167] bg-[#E6FAF1] border-[#06C167]/30' }
+  , [dcs_score])
+  const strokeColor = useMemo(() =>
+    dcs_score >= 70 ? 'stroke-red-500' : dcs_score >= 40 ? 'stroke-yellow-500' : 'stroke-[#06C167]'
+  , [dcs_score])
+  const circumference = 2 * Math.PI * 46
+  const strokeDashoffset = useMemo(() => circumference - (dcs_score / 100) * circumference, [dcs_score, circumference])
 
   return (
     <div className={`bg-white border-2 rounded-xl p-4 sm:p-6 ${risk.color}`}>
@@ -26,8 +32,8 @@ export function ZoneRiskCard({ zoneRisk }: { zoneRisk: ZoneRisk }) {
             <circle cx="55" cy="55" r="46" className="stroke-gray-200" strokeWidth="10" fill="none" />
             <circle cx="55" cy="55" r="46" className={`${strokeColor} transition-all duration-500`}
               strokeWidth="10" fill="none"
-              strokeDasharray={2 * Math.PI * 46}
-              strokeDashoffset={2 * Math.PI * 46 - (dcs_score / 100) * 2 * Math.PI * 46}
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
               strokeLinecap="round" />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
@@ -54,4 +60,4 @@ export function ZoneRiskCard({ zoneRisk }: { zoneRisk: ZoneRisk }) {
       </div>
     </div>
   )
-}
+})

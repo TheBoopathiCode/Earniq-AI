@@ -1,9 +1,10 @@
+import { memo } from 'react'
 import { TrendingDown, TrendingUp } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { IncomeHealth } from '../../types/dashboard'
 import { SpeakButton } from '../LanguageSwitcher'
 
-export function IncomeHealthMeterCard({ incomeHealth }: { incomeHealth: IncomeHealth }) {
+export const IncomeHealthMeterCard = memo(function IncomeHealthMeterCard({ incomeHealth }: { incomeHealth: IncomeHealth }) {
   const { expected_income, actual_income, loss_pct, health_status } = incomeHealth
   const { t } = useTranslation()
 
@@ -23,8 +24,8 @@ export function IncomeHealthMeterCard({ incomeHealth }: { incomeHealth: IncomeHe
         <div className="min-w-0">
           <h3 className="text-sm font-medium text-gray-600">{t('income_health')}</h3>
           <div className="flex items-baseline gap-1 mt-1 flex-wrap">
-            <span className="text-2xl sm:text-3xl font-bold">₹{actual_income.toLocaleString('en-IN')}</span>
-            <span className="text-xs sm:text-sm text-gray-500">/ ₹{expected_income.toLocaleString('en-IN')}</span>
+            <span className="text-2xl sm:text-3xl font-bold">₹{(actual_income ?? 0).toLocaleString('en-IN')}</span>
+            <span className="text-xs sm:text-sm text-gray-500">/ ₹{(expected_income ?? 0).toLocaleString('en-IN')}</span>
           </div>
         </div>
         <div className="flex items-center gap-1 flex-shrink-0">
@@ -42,19 +43,19 @@ export function IncomeHealthMeterCard({ incomeHealth }: { incomeHealth: IncomeHe
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <div><p className="text-xs text-gray-600">{t('expected_income')}</p><p className="text-base sm:text-lg font-semibold">₹{expected_income.toLocaleString('en-IN')}</p></div>
+        <div><p className="text-xs text-gray-600">{t('expected_income')}</p><p className="text-base sm:text-lg font-semibold">₹{(expected_income ?? 0).toLocaleString('en-IN')}</p></div>
         <div>
           <p className="text-xs text-gray-600">{t('actual_income')}</p>
           <div className="flex items-center gap-1">
-            <p className="text-base sm:text-lg font-semibold">₹{actual_income.toLocaleString('en-IN')}</p>
+            <p className="text-base sm:text-lg font-semibold">₹{(actual_income ?? 0).toLocaleString('en-IN')}</p>
             {loss_pct > 5 ? <TrendingDown className="w-4 h-4 text-red-500" /> : <TrendingUp className="w-4 h-4 text-[#06C167]" />}
           </div>
         </div>
-        <div className="col-span-2"><p className="text-xs text-gray-600">{t('income_loss')}</p><p className="text-xl sm:text-2xl font-bold">{loss_pct.toFixed(1)}%</p></div>
+        <div className="col-span-2"><p className="text-xs text-gray-600">{t('income_loss')}</p><p className="text-xl sm:text-2xl font-bold">{(loss_pct ?? 0).toFixed(1)}%</p></div>
       </div>
       <div className="mt-3 pt-3 border-t">
         <p className="text-xs sm:text-sm">{statusMsg}</p>
       </div>
     </div>
   )
-}
+})

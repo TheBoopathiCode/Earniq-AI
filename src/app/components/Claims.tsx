@@ -4,8 +4,12 @@ import { useTranslation } from 'react-i18next'
 import { api } from '../lib/api'
 
 const TRIGGER_LABELS: Record<string, string> = {
-  rain: 'Heavy Rainfall', heat: 'Extreme Heat', aqi: 'Severe AQI',
-  lockdown: 'Zone Lockdown', outage: 'Platform Outage', pandemic: 'Pandemic'
+  rain:     'Heavy Rainfall',
+  heat:     'Extreme Heat',
+  aqi:      'Severe AQI',
+  curfew:   'Zone Lockdown',
+  platform: 'Platform Outage',
+  pandemic: 'Pandemic Lockdown',
 }
 
 export function Claims() {
@@ -32,9 +36,9 @@ export function Claims() {
   )
 
   const total    = claims.length
-  const approved = claims.filter(c => c.status === 'PAID' || c.status === 'paid').length
-  const pending  = claims.filter(c => c.status === 'APPROVED' || c.status === 'approved').length
-  const rejected = claims.filter(c => c.status === 'REJECTED' || c.status === 'rejected').length
+  const approved = claims.filter(c => ['paid','PAID'].includes(c.status)).length
+  const pending  = claims.filter(c => ['approved','APPROVED','pending','PENDING'].includes(c.status)).length
+  const rejected = claims.filter(c => ['rejected','REJECTED'].includes(c.status)).length
 
   const statusColor = (s: string) => {
     const st = s?.toUpperCase()
@@ -61,6 +65,18 @@ export function Claims() {
           <button onClick={fetchClaims} className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50">
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#06C167]' : 'text-gray-500'}`} />
           </button>
+        </div>
+      </div>
+
+      {/* Scope disclaimer — always visible */}
+      <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-6">
+        <span className="text-amber-500 text-lg flex-shrink-0">⚠️</span>
+        <div>
+          <p className="text-sm font-semibold text-amber-800">Income Loss Coverage Only</p>
+          <p className="text-xs text-amber-700 mt-0.5">
+            EarnIQ pays for <strong>lost delivery hours and wages</strong> caused by external disruptions (weather, AQI, curfew, platform outage).
+            Claims for vehicle repairs, medical bills, accidents, or personal emergencies are <strong>not covered</strong> and will be auto-rejected.
+          </p>
         </div>
       </div>
 
@@ -111,8 +127,11 @@ export function Claims() {
                       ₹{(claim.payoutAmount || claim.lossAmount || 0).toLocaleString('en-IN')}
                     </td>
                     <td className="px-4 lg:px-6 py-4">
-                      <span className={`text-sm font-medium ${(claim.fraudScore||0) < 30 ? 'text-[#06C167]' : (claim.fraudScore||0) < 70 ? 'text-yellow-600' : 'text-red-600'}`}>
-                        {claim.fraudScore || 0}/100
+                      <span className={`text-sm font-medium ${
+                        (claim.fraudScore ?? 0) < 30 ? 'text-[#06C167]' :
+                        (claim.fraudScore ?? 0) < 70 ? 'text-yellow-600' : 'text-red-600'
+                      }`}>
+                        {claim.fraudScore ?? 0}/100
                       </span>
                     </td>
                     <td className="px-4 lg:px-6 py-4">

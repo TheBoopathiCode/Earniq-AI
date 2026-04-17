@@ -24,8 +24,8 @@ export interface SafeZoneAdvisory {
 }
 
 export interface ActiveClaim {
-  claim_id: string; trigger_type: DashTriggerType; income_loss: number
-  payout_amount: number; fraud_score: number; status: DashClaimStatus; created_at: string
+  claim_id: string; trigger_type: DashTriggerType; income_loss: number | null
+  payout_amount: number | null; fraud_score: number | null; status: DashClaimStatus; created_at: string
 }
 
 export interface ClaimHistoryItem {

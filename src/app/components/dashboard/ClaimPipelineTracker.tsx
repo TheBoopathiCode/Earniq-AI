@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react'
 import { Brain, AlertTriangle, CheckCircle2, ShieldCheck, Loader2, IndianRupee } from 'lucide-react'
 import { motion } from 'framer-motion'
 
@@ -8,22 +9,22 @@ interface Props {
 }
 
 const STEPS = [
-  { key: 'predict',    label: 'Predict',    description: 'Monitoring conditions',   icon: Brain },
-  { key: 'warn',       label: 'Warn',       description: 'Risk alert issued',        icon: AlertTriangle },
-  { key: 'confirm',    label: 'Confirm',    description: 'Disruption verified',      icon: CheckCircle2 },
-  { key: 'verified',   label: 'Verified',   description: 'Claim validated',          icon: ShieldCheck },
-  { key: 'processing', label: 'Processing', description: 'Payment in progress',      icon: Loader2 },
-  { key: 'completed',  label: 'Completed',  description: 'Amount credited',          icon: IndianRupee },
+  { key: 'predict',    label: 'Predict',    description: 'Monitoring income conditions', icon: Brain },
+  { key: 'warn',       label: 'Warn',       description: 'Income risk alert issued',     icon: AlertTriangle },
+  { key: 'confirm',    label: 'Confirm',    description: 'Disruption verified',          icon: CheckCircle2 },
+  { key: 'verified',   label: 'Verified',   description: 'Income loss claim validated',  icon: ShieldCheck },
+  { key: 'processing', label: 'Processing', description: 'Income payout in progress',    icon: Loader2 },
+  { key: 'completed',  label: 'Completed',  description: 'Income loss payout credited',  icon: IndianRupee },
 ] as const
 
-export function ClaimPipelineTracker({ currentStep, dcsScore, payoutAmount }: Props) {
-  const currentIndex = STEPS.findIndex(s => s.key === currentStep)
-  const progressPct = (currentIndex / (STEPS.length - 1)) * 100
+export const ClaimPipelineTracker = memo(function ClaimPipelineTracker({ currentStep, dcsScore, payoutAmount }: Props) {
+  const currentIndex = useMemo(() => STEPS.findIndex(s => s.key === currentStep), [currentStep])
+  const progressPct  = useMemo(() => (currentIndex / (STEPS.length - 1)) * 100, [currentIndex])
 
   const activeStep = STEPS[currentIndex]
   const activeDescription =
-    currentStep === 'completed' && payoutAmount
-      ? `₹${payoutAmount.toLocaleString('en-IN')} credited successfully`
+    currentStep === 'completed' && payoutAmount != null
+      ? `₹${payoutAmount.toLocaleString('en-IN')} income loss payout credited`
       : activeStep.description
 
   return (
@@ -101,4 +102,4 @@ export function ClaimPipelineTracker({ currentStep, dcsScore, payoutAmount }: Pr
       </div>
     </div>
   )
-}
+})

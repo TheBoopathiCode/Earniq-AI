@@ -28,3 +28,8 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+
+# Temp files
+token_resp.txt
+replace_store.ps1
+backend/uvicorn.log
