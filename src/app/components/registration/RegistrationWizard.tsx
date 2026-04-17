@@ -50,8 +50,16 @@ export function RegistrationWizard({ onComplete }: Props) {
   const [upiId, setUpiId] = useState('')
   const [otpError, setOtpError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [activationStep, setActivationStep] = useState(0)
   const [apiError, setApiError] = useState('')
   const [enrollmentSuspended, setEnrollmentSuspended] = useState(false)
+
+  const ACTIVATION_STEPS = [
+    'Verifying identity…',
+    'Scoring zone risk…',
+    'Calculating premium…',
+    'Activating policy…',
+  ]
 
   // DCS score — same formula as backend and dashboard
   // ── Live DCS from OWM + AQICN ─────────────────────────────────────────────
@@ -85,7 +93,14 @@ export function RegistrationWizard({ onComplete }: Props) {
   const handleComplete = async () => {
     if (platform && city && zone && upiId) {
       setIsLoading(true)
+      setActivationStep(0)
       setApiError('')
+
+      // Animate through steps while waiting for the backend
+      const stepTimer = setInterval(() => {
+        setActivationStep(s => Math.min(s + 1, ACTIVATION_STEPS.length - 1))
+      }, 900)
+
       try {
         const response = await api.post<{ access_token: string; worker: Worker; policy: Policy }>('/auth/register', {
           phone, password: 'earniq2026', platform, city,
@@ -105,7 +120,9 @@ export function RegistrationWizard({ onComplete }: Props) {
           setApiError(msg || 'Registration failed. Please try again.')
         }
       } finally {
+        clearInterval(stepTimer)
         setIsLoading(false)
+        setActivationStep(0)
       }
     }
   }
@@ -461,8 +478,14 @@ export function RegistrationWizard({ onComplete }: Props) {
                   </div>
                 ) : (
                   <Button onClick={handleComplete} disabled={!canProceed() || isLoading} className="w-full" size="lg">
-                    {isLoading ? 'Activating...' : t('activate_policy')}
-                    {!isLoading && <CheckCircle2 className="ml-2 h-4 w-4" />}
+                    {isLoading ? (
+                      <span className="flex items-center gap-2">
+                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        {ACTIVATION_STEPS[activationStep]}
+                      </span>
+                    ) : (
+                      <><span>{t('activate_policy')}</span><CheckCircle2 className="ml-2 h-4 w-4" /></>
+                    )}
                   </Button>
                 )}
               </motion.div>
