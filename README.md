@@ -204,7 +204,7 @@ Real-time dashboard shows:
 ╠════════════════╦══════════════════╦═════════════════════════════════════════╣
 ║   AI / ML      ║   DATA LAYER     ║         EXTERNAL APIs                   ║
 ║                ║                  ║                                         ║
-║  XGBoost       ║  PostgreSQL      ║  OpenWeatherMap  → rain, heat, forecast  ║
+║  XGBoost       ║  MySQL      ║  OpenWeatherMap  → rain, heat, forecast  ║
 ║  (risk score)  ║  (primary store) ║  AQICN           → AQI per district      ║
 ║                ║                  ║  Google Maps     → traffic congestion    ║
 ║  Isolation     ║  Redis           ║  Govt alert feed → curfew / strike       ║
@@ -226,7 +226,7 @@ Real-time dashboard shows:
 ```
 REGISTRATION
   POST /workers
-    → Worker profile stored in PostgreSQL
+    → Worker profile stored in MySQL
     → XGBoost model scores 8-feature risk profile → risk_score (0–100)
     → Premium formula applied → weekly_premium (₹)
     → Policy record created with coverage_cap and trigger_list
@@ -793,7 +793,7 @@ SLA target: payout initiated within 90 seconds of claim auto-approval
 | Backend API | FastAPI (Python) | Async-native for concurrent API polling, native ML library integration, auto OpenAPI docs |
 | Task queue | Celery + Redis | Reliable distributed task scheduling for 15-min polling cycles at scale |
 | ML models | scikit-learn + XGBoost | Industry-standard, lightweight, serializable with joblib for fast inference |
-| Primary database | PostgreSQL | ACID compliance for financial transactions, strong JSON support for event payloads |
+| Primary database | MySQL | ACID compliance for financial transactions, strong JSON support for event payloads |
 | Cache / queue broker | Redis | Sub-millisecond Zone Risk Score cache reads, Celery broker, WebSocket pub-sub |
 | Authentication | JWT (PyJWT) | Stateless, scalable, standard for mobile PWA auth flows |
 | Payment | Razorpay (test mode) | Native UPI support, Indian banking integration, sandbox fully functional |
