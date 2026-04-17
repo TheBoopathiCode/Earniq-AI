@@ -1,35 +1,50 @@
-# Dependencies
+# ── Node ──────────────────────────────────────────────────────────────────────
 node_modules/
 dist/
 build/
+.vite/
 
-# Environment
-.env
-.env.local
-backend/.env
-
-# Python
+# ── Python ────────────────────────────────────────────────────────────────────
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.pdb
 .Python
 *.egg-info/
 .venv/
 venv/
+env/
+.env/
 
-# Logs
+# ── Environment / Secrets ─────────────────────────────────────────────────────
+.env
+.env.local
+.env.production
+backend/.env
+
+# ── Database ──────────────────────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
 *.log
+uvicorn.log
+logs/
 
-# OS
+# ── OS ────────────────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# IDE
+# ── IDE ───────────────────────────────────────────────────────────────────────
 .vscode/
 .idea/
+*.swp
+*.swo
 
-# Temp files
+# ── Temp / scratch files ──────────────────────────────────────────────────────
 token_resp.txt
 replace_store.ps1
-backend/uvicorn.log
+*.tmp
