@@ -1,5 +1,6 @@
 # Earniq AI — Parametric Income Insurance for Gig Workers
-
+**PITCH DECK**
+https://drive.google.com/file/d/1zKTeHndMtS6VVyani-vhl6ePG16MPbgA/view?usp=sharing
 > **"We prevent income loss before it happens — and automatically compensate whatever we couldn't prevent."**
 
 AI-powered parametric income insurance for food delivery workers (Zomato / Swiggy). Payouts trigger automatically from live weather, AQI, and platform data — zero claim forms, 90-second UPI payout.
