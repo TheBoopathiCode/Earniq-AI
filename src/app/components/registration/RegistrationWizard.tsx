@@ -438,23 +438,26 @@ export function RegistrationWizard({ onComplete }: Props) {
                   <div className="text-sm text-red-600 bg-red-50 rounded-lg p-3">{apiError}</div>
                 )}
                 {enrollmentSuspended ? (
-                  <div className="rounded-xl border-2 border-red-200 bg-red-50 p-5 space-y-3">
+                  <div className="rounded-xl border-2 border-amber-200 bg-amber-50 p-5 space-y-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-                        <Shield className="w-5 h-5 text-red-600" />
+                      <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                        <Shield className="w-5 h-5 text-amber-600" />
                       </div>
                       <div>
-                        <p className="font-semibold text-red-800 text-sm">New Enrollments Temporarily Paused</p>
-                        <p className="text-xs text-red-600 mt-0.5">Portfolio under actuarial review</p>
+                        <p className="font-semibold text-amber-800 text-sm">New Enrollments Temporarily Paused</p>
+                        <p className="text-xs text-amber-600 mt-0.5">Portfolio under actuarial review</p>
                       </div>
                     </div>
-                    <p className="text-xs text-red-700 leading-relaxed">
+                    <p className="text-xs text-amber-700 leading-relaxed">
                       Earniq has temporarily paused new policy activations while our actuarial team rebalances the risk pool.
                       This is a routine portfolio control — existing policyholders are fully covered.
                     </p>
-                    <div className="bg-white/70 rounded-lg px-3 py-2 text-xs text-red-600 font-medium">
+                    <div className="bg-white/70 rounded-lg px-3 py-2 text-xs text-amber-600 font-medium">
                       ⏳ Check back in 24–48 hours. Your details have been saved.
                     </div>
+                    <Button variant="outline" className="w-full" onClick={() => setEnrollmentSuspended(false)}>
+                      Try Again
+                    </Button>
                   </div>
                 ) : (
                   <Button onClick={handleComplete} disabled={!canProceed() || isLoading} className="w-full" size="lg">

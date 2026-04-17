@@ -101,7 +101,10 @@ def register(request: Request, req: RegisterRequest, db: Session = Depends(get_d
         zone = _get_zone_or_404(db, req.zone_id)
 
         # ── BCR underwriting gate ─────────────────────────────────────────────────
+        import os
         from app.services.bcr_engine import get_current_bcr_controls, underwriting_check
+        if os.getenv("ENROLLMENT_PAUSED", "").lower() in ("1", "true", "yes"):
+            raise HTTPException(status_code=403, detail="new_enrollment_suspended")
         _, bcr_controls = get_current_bcr_controls(db)
         uw = underwriting_check(
             zone_risk_score = zone.risk_score,
